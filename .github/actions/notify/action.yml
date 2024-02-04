@@ -1,0 +1,15 @@
+name: Compoiste notify
+description: 'Notify the composite action'
+
+inputs:
+  message:
+    description: 'The message to display'
+    default: 'Hello, World!'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Notify
+      id: notify
+      shell: bash
+      run: echo ${{ inputs.message }}

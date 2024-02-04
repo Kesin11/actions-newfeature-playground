@@ -1,0 +1,22 @@
+name: Reusable called
+
+on:
+  workflow_call:
+    inputs:
+      foo:
+        required: true
+        type: string
+
+jobs:
+  echo_foo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "inputs.foo is ${{ inputs.foo }}"
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/notify
+        with:
+          message: "Call composite notify from reusable workflow"

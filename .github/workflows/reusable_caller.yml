@@ -1,0 +1,18 @@
+name: Reusable caller
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  call_reusable:
+    uses: ./.github/workflows/reusable_callable.yml
+    with:
+      foo: "Call bar"
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/notify
+        with:
+          message: "Call composite notify"
