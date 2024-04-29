@@ -1,16 +1,25 @@
 name: Deploy
 
 on:
-  # push:
-  #   branches: [ "main" ]
-  # pull_request:
-  #   branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      deploy_version:
+        description: 'デプロイするバージョン'
+        required: true
+      deploy_target:
+        description: 'デプロイ先環境'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - staging
+        - prod
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: prod
+    environment: ${{ inputs.deploy_target }}
     steps:
-      - uses: actions/checkout@v3
-      - run: echo "Deploy to prod"
+      - uses: actions/checkout@v4
+      - run: echo "Deploy to ${{ inputs.deploy_target }}"
