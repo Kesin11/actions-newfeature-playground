@@ -1,0 +1,16 @@
+name: Custom Deployment Protection Rule
+
+on:
+  push: 
+    branches:
+      - custom_deploy_protection
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Wait for approve from GitHub App
+    environment: custom-protection
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Deploy to custom-protection"
