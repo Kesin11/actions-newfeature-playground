@@ -5,12 +5,36 @@ on:
     branches:
       - custom_deploy_protection
   workflow_dispatch:
+    inputs:
+      approve_run_id:
+        description: 'run_id to approve'
+        required: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Wait for approve from GitHub App
+    # Wait for approve from GitHub App when trigger by push
     environment: custom-protection
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
       - run: echo "Deploy to custom-protection"
+
+  approve:
+    runs-on: ubuntu-latest
+    # Approve to awaiting run_id when trigger by workflow_dispatch
+    if: github.event_name == 'workflow_dispatch' 
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+      - name: Approve Deployment
+        run: |
+          gh api -X POST /repos/${{ github.repository }}/actions/runs/${{ github.event.inputs.approve_run_id }}/deployment_protection_rule \
+            -f "environment_name=custom-protection" \
+            -f "state=approved" \
+            -f "comment=Approved by workflow_dispatch"
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
