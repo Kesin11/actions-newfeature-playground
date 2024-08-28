@@ -1,0 +1,47 @@
+name: Auto Approve Custom Deployment
+# This is demo workflow for auto approve awaiting job that triggerd by custom_deploy_protection.yml
+
+on:
+  push: 
+    branches:
+      - custom_deploy_protection
+
+jobs:
+  build_dummy:
+    runs-on: ubuntu-latest
+    # Mimic long time build job
+    steps:
+      - uses: actions/checkout@v4
+      - run: sleep 10
+
+  auto_approve:
+    runs-on: ubuntu-latest
+    # Find approval awaiting another workflow job that triggerd by same ref(commit hash)
+    needs: build_dummy
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+      - name: Find awaiting approval run_id
+        id: awaiting-run
+        run: |
+          RUN_ID=$(gh api /repos/${{ github.repository }}/actions/workflows/custom_deploy_protection.yml/runs \
+            -X GET -f head_sha=aa521fbb443b721c56d4be23d1cebac9a10f55e2 |\
+             jq -e 'first(.workflow_runs[].id)')
+          echo "run_id=${RUN_ID} >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      # 本当は gh api /repos/${{ github.repository }}/actions/runs/${RUN_ID}/pending_deployments を見て承認待ち状態かどうか判別した方が良い
+      # 今回は簡略化のために承認待ち状態であることを仮定し、承認を行う
+          
+      - name: Approve Deployment
+        run: |
+            gh api -X POST /repos/${{ github.repository }}/actions/runs/${{ steps.awaiting-run.outputs.run_id }}/deployment_protection_rule \
+            -f "environment_name=custom-protection" \
+            -f "state=approved" \
+            -f "comment=Approved by workflow_dispatch"
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
