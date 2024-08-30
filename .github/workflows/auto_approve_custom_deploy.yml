@@ -27,10 +27,10 @@ jobs:
       - name: Find awaiting approval run_id
         id: awaiting-run
         run: |
-          RUN_ID=$(gh api /repos/${{ github.repository }}/actions/workflows/custom_deploy_protection.yml/runs \
-            -X GET -f head_sha=aa521fbb443b721c56d4be23d1cebac9a10f55e2 |\
-             jq -e 'first(.workflow_runs[].id)')
-          echo "run_id=${RUN_ID} >> $GITHUB_OUTPUT
+            RUN_ID=$(gh api /repos/${{ github.repository }}/actions/workflows/custom_deploy_protection.yml/runs \
+              -X GET -f head_sha=${{ github.sha }} |\
+              jq -e 'first(.workflow_runs[].id)')
+            echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
